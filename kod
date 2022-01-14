@@ -1,0 +1,52 @@
+from multiprocessing import Process
+import serial.tools.list_ports
+from time import sleep
+
+
+portlist = []
+ports = serial.tools.list_ports.comports()
+serialinst = serial.Serial()
+
+for onePort in ports:
+    portlist.append(str(onePort))
+    print(str(onePort))
+
+val = input("select Port: COM")
+
+for x in range(0,len(portlist)):
+    if portlist[x].startswith("COM" + str(val)):
+        portVar = "COM" + str(val)
+        print(portlist[x])
+
+serialinst.baudrate = 115200
+serialinst.port = portVar
+serialinst.open()
+
+x = [1]
+voltage = []
+seconds = []
+
+def get_data():
+    while True:
+        if x == [0]:
+            sleep(1)
+            pass
+        if x == [1]:
+            packet = serialinst.readline()
+            packet1 = packet.split(b',')
+            if packet1 != [b'']:
+                packet2 = float(packet1[0])
+                packet3 = float(packet1[1])
+                packet4 = (packet3 / 1000) - 1
+                voltage.append(packet2)
+                seconds.append(packet4)
+                print(voltage)
+                print(seconds)
+                sleep(0.01)
+            else:
+                sleep(1)
+
+if __name__ == '__main__':
+    p1 = Process(target=get_data(),daemon=True)
+    p1.start()
+
